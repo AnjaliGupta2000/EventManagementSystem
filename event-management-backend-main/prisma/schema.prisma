@@ -1,0 +1,66 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  ORGANIZER
+  ATTENDEE
+}
+
+model User {
+  id              Int              @id @default(autoincrement())
+  name            String
+  age             Int
+  email           String           @unique
+  gender          String?
+  location        String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  events          Event[]          @relation("UserEvents")
+  ticketPurchases TicketPurchase[]
+  role            Role             @default(ATTENDEE)
+}
+
+model Event {
+  id              Int              @id @default(autoincrement())
+  title           String
+  description     String
+  date            DateTime
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  userId          Int
+  user            User             @relation("UserEvents", fields: [userId], references: [id])
+  ticketPurchases TicketPurchase[]
+  Ticket          Ticket[]
+}
+
+model TicketPurchase {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  eventId    Int
+  quantity   Int
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+  event      Event    @relation(fields: [eventId], references: [id])
+  Ticket     Ticket?  @relation(fields: [ticketId], references: [id])
+  ticketId   Int?
+}
+
+model Ticket {
+  id              Int              @id @default(autoincrement())
+  type            String
+  price           Float
+  quantity        Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  eventId         Int
+  event           Event            @relation(fields: [eventId], references: [id])
+  ticketPurchases TicketPurchase[]
+}
